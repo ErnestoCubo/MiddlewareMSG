@@ -34,8 +34,33 @@ int initServer(int port) {
 	listen(sock_fd, 5);
 	return sock_fd;
 }
+
+/*Esta fucnión realiza los controles de errores necearios a la hora de
+establecer la conexión del cliente, se encarga de establecer las variables del
+servidor para enlazar la conexión*/
 int initClient(char* host, int port) {
 
+	int sock_out = 0;
+	struct sockaddr_in serv_addr;
+
+	if ((sock_out = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		printf("\nError a la hora de crear el socket");
+		return (-1);
+	}
+
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(port);
+
+	//Conversión de IPsV4 y IPsV6 de texto a binario
+	if (inet_pton(AF_INET, host, &serv_addr.sin_addr)<=0) {
+		printf("\nError en las direccciones, versiones de ip no suporteadas");
+		return (-1);
+	}
+	if (connect(sock_out, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) <= 0) {
+		printf("\nError al conectar");
+		return -1;
+	}
+	return sock_out;
 }
 
 /*Función que realiza la espera hasta que ocurra la primera conexión y crea el nuevo socket
