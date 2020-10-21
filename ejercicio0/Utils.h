@@ -10,6 +10,12 @@
 #include <string.h>
 #include <iostream>
 
+typedef struct msg_t{
+
+	int type;
+	int len;
+}msg_t;
+
 int initServer(int port);
 int initClient(char* host, int port);
 int waitForConnections(sock_fd);

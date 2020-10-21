@@ -55,3 +55,9 @@ void sendMSG(int socket, const void* data, int dataLen) {
 
 
 }
+
+//Cierra el socket que se encuentra a la escucha
+void closeConnections(int socket_fd){
+
+	close(socket_fd);
+}
