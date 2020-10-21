@@ -10,17 +10,9 @@
 #include <string.h>
 #include <iostream>
 
-//Estructura que define el mensaje
-typedef struct msg_t{
-
-	int type;
-	int len;
-}msg_t;
-
 int initServer(int port);
 int initClient(char* host, int port);
-int waitForConnections(int sock_fd);
+int waitForConnections(sock_fd);
 void sendMSG(int socket, const void* data, int dataLen);
-void closeConnections(int socket_fd);
 
 #endif

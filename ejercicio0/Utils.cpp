@@ -6,7 +6,7 @@ int initServer(int port) {
 	//Descriptor de ficheros del socket que se abre a la escucha
 	int sock_fd;
 	//Inicialización de una variable tipo socket
-	sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+	sock_fd = sockect(AF_INET, SOCK_STREAM, 0);
 	if (sock_fd < 0) {
 		printf("Hubo un error al crear el socket");
 	}
@@ -21,41 +21,28 @@ int initServer(int port) {
 
 	int option = 1;
 	setsockopt(sock_fd, SOL_SOCKET,
-		(SO_REUSEPORT | SO_REUSEADDR),
+		(SO_REUSEPORT | SO_REUSEADOR),
 		&option, sizeof(option));
-	
-	//La función bind es la encargada de arbir finalmente el puerto
+
 	if (bind(sock_fd, (struct sockaddr *) &serv_addr,
 		sizeof(serv_addr)) < 0) {
 		printf("Error al realizar binding");
 	}
-	
-	//Máximo de 5 peticiones a la espera para evitar el DDoS
 	listen(sock_fd, 5);
 	return sock_fd;
 }
 int initClient(char* host, int port) {
 
+
+
 }
+int waitForConnections(sock_fd) {
 
-/*Función que realiza la espera hasta que ocurra la primera conexión y crea el nuevo socket
-ya que estos no pueden ser reutilizados*/
-int waitForConnections(int sock_fd) {
-	
-	struct sockaddr_in cli_addr;
-	socklen_t clilen = sizeof(cli_addr);
 
-	//Creación del nuevo socket para retornarl
-	int newsock_fd = accept(sock_fd,
-		(struct sockaddr *) &cli_addr, &clilen);
-	return newsock_fd;
+
 }
 void sendMSG(int socket, const void* data, int dataLen) {
 
-}
 
-//Cierra el socket que se encuentra a la escucha
-void closeConnections(int socket_fd){
 
-	close(socket_fd);
 }
