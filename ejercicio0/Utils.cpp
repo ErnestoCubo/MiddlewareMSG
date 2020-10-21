@@ -23,11 +23,14 @@ int initServer(int port) {
 	setsockopt(sock_fd, SOL_SOCKET,
 		(SO_REUSEPORT | SO_REUSEADOR),
 		&option, sizeof(option));
-
+	
+	//La función bind es la encargada de arbir finalmente el puerto
 	if (bind(sock_fd, (struct sockaddr *) &serv_addr,
 		sizeof(serv_addr)) < 0) {
 		printf("Error al realizar binding");
 	}
+	
+	//Máximo de 5 peticiones a la espera para evitar el DDoS
 	listen(sock_fd, 5);
 	return sock_fd;
 }
@@ -36,10 +39,16 @@ int initClient(char* host, int port) {
 
 
 }
+
+/*Función que realiza la espera hasta que ocurra la primera conexión y retorna el nuevo
+descriptor de fichero perteneciente a la nueva conexión creada*/
 int waitForConnections(sock_fd) {
-
-
-
+	
+	struct sockaddr_in cli_addr;
+	sock_len = sizeof(cli_addr);
+	int newsock_fd = accept(sock_fd,
+		(struct sockaddr *) &cli_addr, &clilen);
+	return newsock_fd;
 }
 void sendMSG(int socket, const void* data, int dataLen) {
 
