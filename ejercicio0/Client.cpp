@@ -8,12 +8,9 @@ int main(int arg, char** argv) {
 	//mensaje enviado al servidor
 	char* msg = "Hola desde cliente\n";
 	int bufferSize = strlen(msg) + 1;
-
-	//Se le pasa primero la longitud del mensaje + '\0'
-	write(client_fd, &bufferSize, sizeof(int));
-
-	//Una vez el servidor recibe el tamaño y lo ha reservado se continua pasando el msg
-	write(client_fd, msg, bufferSize);
+	
+	//El mensaje se pasa a través de la fucnión implementada
+	sendMSG(client_fd, msg, bufferSize);
 	closeConnections(client_fd);
 
 	return 0;
