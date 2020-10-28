@@ -91,7 +91,6 @@ void sendMSG(int socket, const void* data, int dataLen) {
 	int crc = 0;
 
 	//Envío del SYNC
-
 	write(socket, &tag, sizeof(short int));
 
 	//Recibo del SYNC+ACK
@@ -152,7 +151,7 @@ void recvMSG(int socket, void** data, int* dataLen) {
 	//Se recibe el SYNC
 	read(socket, &tag, sizeof(short int));
 
-	//Comprueba que el SYN sea el SYNC y no otro tipo de paquete
+	//Comprueba que el SYNC sea el SYNC y no otro tipo de paquete
 	if (tag != SYNC) {
 		printf("ERROR: sendMSG, linea: %d \n", __LINE__);
 		closeConnections(socket);
