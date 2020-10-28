@@ -75,9 +75,6 @@ int waitForConnections(int sock_fd) {
 		(struct sockaddr *) &cli_addr, &clilen);
 	return newsock_fd;
 }
-void sendMSG(int socket, const void* data, int dataLen) {
-
-}
 
 //Cierra el socket que se encuentra a la escucha
 void closeConnections(int socket_fd){
@@ -94,14 +91,13 @@ void sendMSG(int socket, const void* data, int dataLen) {
 	int crc = 0;
 
 	//Envío del SYNC
-
 	write(socket, &tag, sizeof(short int));
 
 	//Recibo del SYNC+ACK
 	read(socket, &tag, sizeof(short int));
 
 	//Se recibe un paquete distinto al ACK se da el reporte del error y sale
-	if (tag != SYN_ACK) {
+	if (tag != SYNC_ACK) {
 		printf("ERROR: funcion sendMSG, linea: %d\n", __LINE__);
 		closeConnections(socket);
 		exit(0);
@@ -141,7 +137,7 @@ void sendMSG(int socket, const void* data, int dataLen) {
 	//Comprobación del tag END
 	if (tag != END) {
 		printf("ERROR: sendMSG, linea: %d \n", __LINE__);
-		closeConnection(socket);
+		closeConnections(socket);
 		exit(0);
 	}
 }
@@ -155,10 +151,10 @@ void recvMSG(int socket, void** data, int* dataLen) {
 	//Se recibe el SYNC
 	read(socket, &tag, sizeof(short int));
 
-	//Comprueba que el SYN sea el SYNC y no otro tipo de paquete
+	//Comprueba que el SYNC sea el SYNC y no otro tipo de paquete
 	if (tag != SYNC) {
 		printf("ERROR: sendMSG, linea: %d \n", __LINE__);
-		closeConnection(socket);
+		closeConnections(socket);
 		exit(0);
 	}
 
@@ -172,7 +168,7 @@ void recvMSG(int socket, void** data, int* dataLen) {
 	//Se comprueba que sea el ACK y no otro paquete
 	if (tag != ACK) {
 		printf("ERROR: sendMSG, linea: %d \n", __LINE__);
-		closeConnection(socket);
+		closeConnections(socket);
 		exit(0);
 	}
 
@@ -195,7 +191,7 @@ void recvMSG(int socket, void** data, int* dataLen) {
 	read(socket, &tag, sizeof(short int));
 	if (tag != ACK) {
 		printf("ERROR: sendMSG, linea: %d \n", __LINE__);
-		closeConnection(socket);
+		closeConnections(socket);
 		exit(0);
 	}
 

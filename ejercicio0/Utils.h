@@ -10,7 +10,7 @@
 #include <string.h>
 #include <iostream>
 
-Definiciones de los paquetes y los códigos de errores
+//Definiciones de los paquetes y los códigos de errores
 #define ERROR		-1
 #define SYNC_ACK 	 1
 #define ACK 	 	 0
