@@ -1,10 +1,20 @@
 #include "Utils.h"
 
+int IDGenerator = 0;
+bool shutDown = false;
+std::thread* waitForConnectionsThread;
+
+//Diccionario que guarda las conexiones abiertas en el servidor
+std::map<int, connection_t*> clientList
+
 //Método que se encarga de inicializar el servidor y abrir el socket
 int initServer(int port) {
 
+	exit = false;
+
 	//Descriptor de ficheros del socket que se abre a la escucha
 	int sock_fd;
+
 	//Inicialización de una variable tipo socket
 	sock_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock_fd < 0) {
@@ -12,8 +22,10 @@ int initServer(int port) {
 	}
 	struct sockaddr_in serv_addr;
 	serv_addr.sin_family = AF_INET;
+
 	//Se reciben funciones de cualquier dirección
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
+
 	/*La función htons asegura que los datos recibidos se van 
 	a poder interpretar en cualquier switch máquina, 
 	transforma los datos de local a red etc*/
@@ -32,6 +44,8 @@ int initServer(int port) {
 	
 	//Máximo de 5 peticiones a la espera para evitar el DDoS
 	listen(sock_fd, 5);
+	waitForConnectionsThread = new std::thread(waitForConnectionsAsync, sock_fd);
+
 	return sock_fd;
 }
 
@@ -60,7 +74,64 @@ int initClient(char* host, int port) {
 		printf("\nError al conectar");
 		return -1;
 	}
+
+	connection_t* conn = new connection_t[1];
+	read(sock_out, &conn->clientID, sizeof(int));
+	conn->socket_fd = sock_out;
+	conn->buffer = new std::list<dataPacket_t*>()
+
+	//En la posición 0 de la lista se encuentra el identificador del servidor al ser ese el unico
+	clientList[0] = conn;
 	return sock_out;
+}
+
+void waitForConnectionsAsync(int socket_fd) {
+	while (!exit) {
+		waitForConnections(socket_fd);
+	}
+}
+
+void recvMSGAsync(int clientID) {
+
+	connection_t* conn = clientList[clientID];
+	while (true) {
+		dataPacket_t packet = new dataPacket_t[1];
+		recvMSG(clientID, (void**)&(packet->data), &(packet->dataSize);
+		conn->buffer->push_back(packet);
+	}
+}
+
+int getCountMSG(int clientID) {
+
+	connection_t* conn = clientList[clientID];
+	return conn->buffer->size();
+}
+
+bool checkMSG(int clientID) {
+
+	return (getCountMSG(clientID) > 0);
+}
+
+void popMSG(int clientID, void(**)data, int dataLen) {
+
+	if (!checkMSG(clientID)) {
+		*data = NULL;
+		*dataLen = 0;
+		return;
+	}
+	else {
+		connection_t conn = clientList[clientID];
+		dataPacket_t * packet = conn->buffer->back();
+		conn->buffer->pop_back();
+		*data = packet->data;
+		*dataLen = packet->dataSize();
+		delete[] packet;
+	}
+}
+
+void shutOff() {
+
+	shutDown = true;
 }
 
 /*Función que realiza la espera hasta que ocurra la primera conexión y crea el nuevo socket
@@ -73,19 +144,45 @@ int waitForConnections(int sock_fd) {
 	//Creación del nuevo socket para retornarl
 	int newsock_fd = accept(sock_fd,
 		(struct sockaddr *) &cli_addr, &clilen);
+
+	//Entrada de nuevas conexines
+	connection_t* conn = new connection_t;
+	conn.client.socket_fd = newsock_fd;
+	conn.clientID = IDGenerator;
+	IDGenerator++;
+
+	conn.buffer = new std::list<dataPacket_t*>()
+	clientList[conn.clientID] = conn;
+
+	write(newsock_fd, &conn.clientID, sizeof(int));
 	return newsock_fd;
 }
 
 //Cierra el socket que se encuentra a la escucha
 void closeConnections(int socket_fd){
+	connection_t conn = clientList[connID];
+	close(conn.socket_fd);
+	clientList.erase(clientID);
+	if (conn.buffer->size() > 0) {
+		printf("WARNING: Quedan mensajes en el buffer de una conexión ya cerrada\n");
+	}
+	for (std::list<dataPacket_t*>::iterator it = conn.buffer->begin(); it = conn.buffer->end(); ++it) {
+		delete[] * (it)->data;
+		delete[] * it;
+	}
 
-	close(socket_fd);
+	delete conn.buffer;
+	conn.alive=false
 }
 
 /*Esta función se hace cargo del envío de mensajes haciendo uso de protocolos como el SYN_ACK
 además tiene comprobación de errores en caso de que el paquete devuelto no sea el que cierre la conexión
 o que no sea del mismo tamaño*/
-void sendMSG(int socket, const void* data, int dataLen) {
+void sendMSG(int connID, const void* data, int dataLen) {
+
+	//Se enlaza el socket con la ID de la conexión
+	connection_t conn = clientList[connID];
+	int socket = conn.socket_fd;
 
 	short int tag = SYNC;
 	int crc = 0;
@@ -144,8 +241,12 @@ void sendMSG(int socket, const void* data, int dataLen) {
 
 /*Función que realiza en el servidor el recibo de los datos o mensajes que envía el cliente esta función 
 hace uso del protocolo SYN_ACK antes de establecer la conexión en caso de fallo termina esa coneión entrante*/
-void recvMSG(int socket, void** data, int* dataLen) {
+void recvMSG(int connID, void** data, int* dataLen) {
 	
+	//Relacion del identificador de la conexion con el socket
+	connection_t conn = clientList[connID];
+	int socket = conn.socket_fd;
+
 	short int tag = 0;
 	
 	//Se recibe el SYNC

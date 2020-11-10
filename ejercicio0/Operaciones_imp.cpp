@@ -1,8 +1,8 @@
 #include "Operaciones_imp.h"
 
-operaciones_imp::operaciones_imp(int socket_fd) {
+operaciones_imp::operaciones_imp(int clientID) {
 
-	client_fd = waitForConnections(socket_fd);
+	client_fd = clientID;
 	operacion = new operaciones();
 }
 
