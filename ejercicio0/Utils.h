@@ -9,6 +9,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+#include <map>
+#include <list>
+#include <thread>
 
 //Definiciones de los paquetes y los códigos de errores
 #define ERROR		-1
@@ -17,12 +20,21 @@
 #define SYNC	 	 2
 #define END		 3
 
-//Estructura que define el mensaje
-typedef struct msg_t{
+typedef struct dataPacket_t {
+	int dataSize;
+	char* data;
 
-	int type;
-	int len;
-}msg_t;
+}dataPacket_t;
+
+//Estructura que define el mensaje
+typedef struct connection_t {
+	int clientID;
+	int socket_fd;
+	bool alive;
+
+	//Se crea una lista de mensajes ya que se van a estar legando mensajes de manera asincrona
+	std::list<dataPacket_t*> * buffer;
+}connection_t;
 
 int initServer(int port);
 int initClient(char* host, int port);
